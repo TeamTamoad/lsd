@@ -61,9 +61,9 @@ impl Size {
         let unit_content = self.render_unit(colors, flags);
 
         let left_pad = if let Some(align) = val_alignment {
-            " ".repeat(align - val_content.content().len())
+            " ".repeat(align - val_content.content().len()).into()
         } else {
-            "".to_string()
+            "".into()
         };
 
         let mut strings: Vec<ColoredString> = vec![
@@ -80,7 +80,7 @@ impl Size {
             .map(|s| s.to_string())
             .collect::<Vec<String>>()
             .join("");
-        ColoredString::new(Colors::default_style(), res)
+        ColoredString::new(Colors::default_style(), res.into())
     }
 
     fn paint(&self, colors: &Colors, flags: &Flags, content: String) -> ColoredString {

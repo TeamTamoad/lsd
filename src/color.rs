@@ -7,7 +7,7 @@ pub use crate::flags::color::ThemeOption;
 
 use crossterm::style::Color;
 use lscolors::{Indicator, LsColors};
-use std::path::Path;
+use std::{borrow::Cow, path::Path};
 
 #[allow(dead_code)]
 #[derive(Hash, Debug, Eq, PartialEq, Clone)]
@@ -128,7 +128,7 @@ impl Elem {
     }
 }
 
-pub type ColoredString = StyledContent<String>;
+pub type ColoredString<'a> = StyledContent<Cow<'a, str>>;
 
 pub struct Colors {
     theme: Option<Theme>,
@@ -152,11 +152,23 @@ impl Colors {
         Self { theme, lscolors }
     }
 
-    pub fn colorize(&self, input: String, elem: &Elem) -> ColoredString {
-        self.style(elem).apply(input)
+    pub fn colorize<'a, S>(&self, input: S, elem: &Elem) -> ColoredString<'a>
+    where
+        S: Into<Cow<'a, str>>,
+    {
+        self.style(elem).apply(input.into())
     }
 
-    pub fn colorize_using_path(&self, input: String, path: &Path, elem: &Elem) -> ColoredString {
+    pub fn colorize_using_path<'a, S>(
+        &self,
+        input: S,
+        path: &Path,
+        elem: &Elem,
+    ) -> ColoredString<'a>
+    where
+        S: Into<Cow<'a, str>>,
+    {
+        let input = input.into();
         let style_from_path = self.style_from_path(path);
         match style_from_path {
             Some(style_from_path) => style_from_path.apply(input),

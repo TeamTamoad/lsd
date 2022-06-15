@@ -23,7 +23,7 @@ impl From<FileType> for Indicator {
 impl Indicator {
     pub fn render(&self, flags: &Flags) -> ColoredString {
         if flags.display_indicators.0 {
-            ColoredString::new(Colors::default_style(), self.0.to_string())
+            ColoredString::new(Colors::default_style(), self.0.into())
         } else {
             ColoredString::new(Colors::default_style(), "".into())
         }

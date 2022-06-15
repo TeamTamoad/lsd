@@ -1,5 +1,6 @@
 use crate::color::{ColoredString, Colors, Elem};
 use crate::flags::{Flags, PermissionFlag};
+use std::borrow::Cow;
 use std::fs::Metadata;
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -62,9 +63,9 @@ impl Permissions {
     pub fn render(&self, colors: &Colors, flags: &Flags) -> ColoredString {
         let bit = |bit, chr: &'static str, elem: &Elem| {
             if bit {
-                colors.colorize(String::from(chr), elem)
+                colors.colorize(chr, elem)
             } else {
-                colors.colorize(String::from("-"), &Elem::NoAccess)
+                colors.colorize("-", &Elem::NoAccess)
             }
         };
 
@@ -74,28 +75,28 @@ impl Permissions {
                 bit(self.user_read, "r", &Elem::Read),
                 bit(self.user_write, "w", &Elem::Write),
                 match (self.user_execute, self.setuid) {
-                    (false, false) => colors.colorize(String::from("-"), &Elem::NoAccess),
-                    (true, false) => colors.colorize(String::from("x"), &Elem::Exec),
-                    (false, true) => colors.colorize(String::from("S"), &Elem::ExecSticky),
-                    (true, true) => colors.colorize(String::from("s"), &Elem::ExecSticky),
+                    (false, false) => colors.colorize("-", &Elem::NoAccess),
+                    (true, false) => colors.colorize("x", &Elem::Exec),
+                    (false, true) => colors.colorize("S", &Elem::ExecSticky),
+                    (true, true) => colors.colorize("s", &Elem::ExecSticky),
                 },
                 // Group permissions
                 bit(self.group_read, "r", &Elem::Read),
                 bit(self.group_write, "w", &Elem::Write),
                 match (self.group_execute, self.setgid) {
-                    (false, false) => colors.colorize(String::from("-"), &Elem::NoAccess),
-                    (true, false) => colors.colorize(String::from("x"), &Elem::Exec),
-                    (false, true) => colors.colorize(String::from("S"), &Elem::ExecSticky),
-                    (true, true) => colors.colorize(String::from("s"), &Elem::ExecSticky),
+                    (false, false) => colors.colorize("-", &Elem::NoAccess),
+                    (true, false) => colors.colorize("x", &Elem::Exec),
+                    (false, true) => colors.colorize("S", &Elem::ExecSticky),
+                    (true, true) => colors.colorize("s", &Elem::ExecSticky),
                 },
                 // Other permissions
                 bit(self.other_read, "r", &Elem::Read),
                 bit(self.other_write, "w", &Elem::Write),
                 match (self.other_execute, self.sticky) {
-                    (false, false) => colors.colorize(String::from("-"), &Elem::NoAccess),
-                    (true, false) => colors.colorize(String::from("x"), &Elem::Exec),
-                    (false, true) => colors.colorize(String::from("T"), &Elem::ExecSticky),
-                    (true, true) => colors.colorize(String::from("t"), &Elem::ExecSticky),
+                    (false, false) => colors.colorize("-", &Elem::NoAccess),
+                    (true, false) => colors.colorize("x", &Elem::Exec),
+                    (false, true) => colors.colorize("T", &Elem::ExecSticky),
+                    (true, true) => colors.colorize("t", &Elem::ExecSticky),
                 },
             ]
             .into_iter()
@@ -124,7 +125,7 @@ impl Permissions {
             }
         };
 
-        ColoredString::new(Colors::default_style(), res)
+        ColoredString::new(Colors::default_style(), Cow::Owned(res))
     }
 
     pub fn is_executable(&self) -> bool {

@@ -37,10 +37,10 @@ impl<'a> From<&'a Metadata> for Owner {
 
 impl Owner {
     pub fn render_user(&self, colors: &Colors) -> ColoredString {
-        colors.colorize(self.user.clone(), &Elem::User)
+        colors.colorize(&self.user, &Elem::User)
     }
 
     pub fn render_group(&self, colors: &Colors) -> ColoredString {
-        colors.colorize(self.group.clone(), &Elem::Group)
+        colors.colorize(&self.group, &Elem::Group)
     }
 }

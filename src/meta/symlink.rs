@@ -56,7 +56,10 @@ impl SymLink {
             };
 
             let strings: &[ColoredString] = &[
-                ColoredString::new(Colors::default_style(), format!(" {} ", flag.symlink_arrow)), // ⇒ \u{21d2}
+                ColoredString::new(
+                    Colors::default_style(),
+                    format!(" {} ", flag.symlink_arrow).into(),
+                ), // ⇒ \u{21d2}
                 colors.colorize(target_string, elem),
             ];
 
@@ -65,7 +68,7 @@ impl SymLink {
                 .map(|s| s.to_string())
                 .collect::<Vec<String>>()
                 .join("");
-            ColoredString::new(Colors::default_style(), res)
+            ColoredString::new(Colors::default_style(), res.into())
         } else {
             ColoredString::new(Colors::default_style(), "".into())
         }
