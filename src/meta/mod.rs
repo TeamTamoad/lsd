@@ -1,14 +1,14 @@
-mod access_control;
-mod date;
-mod filetype;
-mod indicator;
-mod inode;
-mod links;
+pub mod access_control;
+pub mod date;
+pub mod filetype;
+pub mod indicator;
+pub mod inode;
+pub mod links;
 pub mod name;
-mod owner;
-mod permissions;
-mod size;
-mod symlink;
+pub mod owner;
+pub mod permissions;
+pub mod size;
+pub mod symlink;
 
 #[cfg(windows)]
 mod windows_utils;

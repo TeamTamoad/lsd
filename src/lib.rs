@@ -28,15 +28,15 @@ extern crate users;
 #[cfg(windows)]
 extern crate winapi;
 
-mod app;
-mod color;
-mod config_file;
-mod core;
-mod display;
-mod flags;
-mod icon;
-mod meta;
-mod sort;
+pub mod app;
+pub mod color;
+pub mod config_file;
+pub mod core;
+pub mod display;
+pub mod flags;
+pub mod icon;
+pub mod meta;
+pub mod sort;
 
 use crate::config_file::Config;
 use crate::core::Core;
