@@ -139,7 +139,7 @@ fn inner_display_grid(
     for meta in metas {
         if let Some(content) = &meta.content {
             if should_display_folder_path {
-                output += &display_folder_path(meta);
+                output += &format!("\n{}:\n", meta.path.to_string_lossy())
             }
 
             let display_option = DisplayOption::Relative {
