@@ -78,6 +78,8 @@ fn inner_display_grid(
     // asked to display the directory itself (rather than its contents).
     let skip_dirs = (depth == 0) && (flags.display != Display::DirectoryOnly);
 
+    let hyper_link = flags.hyperlink == HyperlinkOption::Always;
+
     // print the files first.
     for meta in metas {
         // Maybe skip showing the directory meta now; show its contents later.
@@ -89,22 +91,21 @@ fn inner_display_grid(
             continue;
         }
 
-        let blocks = get_output(
-            meta,
-            colors,
-            icons,
-            flags,
-            display_option,
-            &padding_rules,
-            (0, ""),
-        );
-
-        for block in blocks {
-            cells.push(Cell {
-                width: get_visible_width(&block, flags.hyperlink == HyperlinkOption::Always),
+        cells.extend(
+            get_output(
+                meta,
+                colors,
+                icons,
+                flags,
+                display_option,
+                &padding_rules,
+                &(0, ""),
+            )
+            .map(|block| Cell {
+                width: get_visible_width(&block, hyper_link),
                 contents: block,
-            });
-        }
+            }),
+        );
     }
 
     // Print block headers
@@ -204,6 +205,8 @@ fn inner_display_tree(
     let mut cells = Vec::new();
     let last_idx = metas.len();
 
+    let hyper_link = flags.hyperlink == HyperlinkOption::Always;
+
     for (idx, meta) in metas.iter().enumerate() {
         let current_prefix = if tree_depth_prefix.0 > 0 {
             if idx + 1 != last_idx {
@@ -216,20 +219,21 @@ fn inner_display_tree(
             tree_depth_prefix.1.to_string()
         };
 
-        for block in get_output(
-            meta,
-            colors,
-            icons,
-            flags,
-            &DisplayOption::FileName,
-            padding_rules,
-            (tree_index, &current_prefix),
-        ) {
-            cells.push(Cell {
-                width: get_visible_width(&block, flags.hyperlink == HyperlinkOption::Always),
+        cells.extend(
+            get_output(
+                meta,
+                colors,
+                icons,
+                flags,
+                &DisplayOption::FileName,
+                padding_rules,
+                &(tree_index, &current_prefix),
+            )
+            .map(|block| Cell {
+                width: get_visible_width(&block, hyper_link),
                 contents: block,
-            });
-        }
+            }),
+        );
 
         if let Some(content) = &meta.content {
             let new_prefix = if tree_depth_prefix.0 > 0 {
@@ -279,17 +283,16 @@ fn display_folder_path(meta: &Meta) -> String {
     format!("\n{}:\n", meta.path.to_string_lossy())
 }
 
-fn get_output(
-    meta: &Meta,
-    colors: &Colors,
-    icons: &Icons,
-    flags: &Flags,
-    display_option: &DisplayOption,
-    padding_rules: &HashMap<Block, usize>,
-    tree: (usize, &str),
-) -> Vec<String> {
-    let mut strings: Vec<String> = Vec::new();
-    for (i, block) in flags.blocks.0.iter().enumerate() {
+fn get_output<'a>(
+    meta: &'a Meta,
+    colors: &'a Colors,
+    icons: &'a Icons,
+    flags: &'a Flags,
+    display_option: &'a DisplayOption,
+    padding_rules: &'a HashMap<Block, usize>,
+    tree: &'a (usize, &str),
+) -> impl Iterator<Item = String> + 'a {
+    flags.blocks.0.iter().enumerate().map(|(i, block)| {
         let mut block_vec = if Layout::Tree == flags.layout && tree.0 == i {
             vec![colors.colorize(tree.1, &Elem::TreeEdge)]
         } else {
@@ -330,15 +333,12 @@ fn get_output(
                 }
             }
         };
-        strings.push(
-            block_vec
-                .into_iter()
-                .map(|s| s.to_string())
-                .collect::<Vec<String>>()
-                .join(""),
-        );
-    }
-    strings
+        block_vec
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>()
+            .join("")
+    })
 }
 
 fn get_visible_width(input: &str, hyperlink: bool) -> usize {
