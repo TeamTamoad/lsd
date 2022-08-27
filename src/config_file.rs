@@ -4,6 +4,7 @@ use crate::flags::layout::Layout;
 use crate::flags::permission::PermissionFlag;
 use crate::flags::size::SizeFlag;
 use crate::flags::sorting::{DirGrouping, SortColumn};
+use crate::flags::Block;
 use crate::flags::HyperlinkOption;
 use crate::flags::{ColorOption, ThemeOption};
 ///! This module provides methods to handle the program's config files and operations related to
@@ -27,7 +28,7 @@ const CONF_FILE_NAME: &str = "config.yaml";
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub classic: Option<bool>,
-    pub blocks: Option<Vec<String>>,
+    pub blocks: Option<Vec<Block>>,
     pub color: Option<Color>,
     pub date: Option<String>,
     pub dereference: Option<bool>,
@@ -342,6 +343,7 @@ mod tests {
     use crate::flags::permission::PermissionFlag;
     use crate::flags::size::SizeFlag;
     use crate::flags::sorting::{DirGrouping, SortColumn};
+    use crate::flags::Block;
     use crate::flags::HyperlinkOption;
 
     #[test]
@@ -351,12 +353,12 @@ mod tests {
             Config {
                 classic: Some(false),
                 blocks: Some(vec![
-                    "permission".into(),
-                    "user".into(),
-                    "group".into(),
-                    "size".into(),
-                    "date".into(),
-                    "name".into(),
+                    Block::Permission,
+                    Block::User,
+                    Block::Group,
+                    Block::Size,
+                    Block::Date,
+                    Block::Name
                 ]),
                 color: Some(config_file::Color {
                     when: Some(ColorOption::Auto),

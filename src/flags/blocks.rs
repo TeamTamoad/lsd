@@ -3,8 +3,8 @@
 
 use super::Configurable;
 use crate::config_file::Config;
-use crate::print_error;
 
+use serde::Deserialize;
 use std::convert::TryFrom;
 
 use clap::ArgMatches;
@@ -128,21 +128,11 @@ impl Configurable<Self> for Blocks {
     /// its [String] values is returned as `Blocks` in a [Some].
     /// Otherwise it returns [None].
     fn from_config(config: &Config) -> Option<Self> {
-        if let Some(c) = &config.blocks {
-            let mut blocks: Vec<Block> = vec![];
-            for b in c.iter() {
-                match Block::try_from(b.as_str()) {
-                    Ok(block) => blocks.push(block),
-                    Err(err) => print_error!("{}.", err),
-                }
-            }
-            if blocks.is_empty() {
-                None
-            } else {
-                Some(Self(blocks))
-            }
-        } else {
+        let blocks = config.blocks.as_ref()?;
+        if blocks.is_empty() {
             None
+        } else {
+            Some(Self(blocks.clone()))
         }
     }
 }
@@ -155,7 +145,8 @@ impl Default for Blocks {
 }
 
 /// A block of data to show.
-#[derive(Clone, Debug, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Debug, Deserialize, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[serde(rename_all = "snake_case")]
 pub enum Block {
     Permission,
     User,
@@ -165,6 +156,7 @@ pub enum Block {
     SizeValue,
     Date,
     Name,
+    #[serde(rename = "inode")]
     INode,
     Links,
 }
@@ -374,9 +366,20 @@ mod test_blocks {
     }
 
     #[test]
+    fn test_from_config_empty() {
+        let c = Config {
+            blocks: Some(vec![]),
+            ..Config::with_none()
+        };
+        assert_eq!(None, Blocks::from_config(&c));
+    }
+
+    #[test]
     fn test_from_config_one() {
-        let mut c = Config::with_none();
-        c.blocks = Some(vec!["permission".into()]);
+        let c = Config {
+            blocks: Some(vec![Block::Permission]),
+            ..Config::with_none()
+        };
 
         let blocks = Blocks(vec![Block::Permission]);
         assert_eq!(Some(blocks), Blocks::from_config(&c));
@@ -392,32 +395,28 @@ mod test_blocks {
             Block::User,
             Block::Permission,
         ]);
-        let mut c = Config::with_none();
-        c.blocks = Some(vec![
-            "name".into(),
-            "date".into(),
-            "size".into(),
-            "group".into(),
-            "user".into(),
-            "permission".into(),
-        ]);
+        let c = Config {
+            blocks: Some(vec![
+                Block::Name,
+                Block::Date,
+                Block::Size,
+                Block::Group,
+                Block::User,
+                Block::Permission,
+            ]),
+            ..Config::with_none()
+        };
 
         assert_eq!(Some(target), Blocks::from_config(&c));
     }
 
     #[test]
     fn test_from_config_every_second_one() {
-        let mut c = Config::with_none();
-        c.blocks = Some(vec!["permission".into(), "group".into(), "date".into()]);
+        let c = Config {
+            blocks: Some(vec![Block::Permission, Block::Group, Block::Date]),
+            ..Config::with_none()
+        };
         let blocks = Blocks(vec![Block::Permission, Block::Group, Block::Date]);
-        assert_eq!(Some(blocks), Blocks::from_config(&c));
-    }
-
-    #[test]
-    fn test_from_config_invalid_is_ignored() {
-        let mut c = Config::with_none();
-        c.blocks = Some(vec!["permission".into(), "foo".into(), "date".into()]);
-        let blocks = Blocks(vec![Block::Permission, Block::Date]);
         assert_eq!(Some(blocks), Blocks::from_config(&c));
     }
 
