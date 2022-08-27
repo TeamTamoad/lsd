@@ -81,21 +81,13 @@ impl Configurable<Self> for Blocks {
     /// `Blocks` does not contain a [Block] of variant [INode](Block::INode) yet, one is prepended
     /// to the returned value.
     fn configure_from(matches: &ArgMatches, config: &Config) -> Self {
-        let mut blocks = if matches.is_present("long") {
-            Self::long()
-        } else {
-            Default::default()
-        };
-
-        if matches.is_present("long") {
-            if let Some(value) = Self::from_config(config) {
-                blocks = value;
+        let mut blocks = Self::from_arg_matches(matches).unwrap_or_else(|| {
+            if matches.is_present("long") {
+                Self::from_config(config).unwrap_or_else(Self::long)
+            } else {
+                Default::default()
             }
-        }
-
-        if let Some(value) = Self::from_arg_matches(matches) {
-            blocks = value;
-        }
+        });
 
         if matches.is_present("context") {
             blocks.optional_insert_context();
@@ -117,18 +109,17 @@ impl Configurable<Self> for Blocks {
             return None;
         }
 
-        if let Some(values) = matches.values_of("blocks") {
-            let mut blocks: Vec<Block> = Vec::with_capacity(values.len());
-            for value in values {
-                blocks.push(Block::try_from(value).unwrap_or_else(|_| {
+        let blocks: Vec<Block> = matches
+            .values_of("blocks")?
+            .map(|value| {
+                Block::try_from(value).unwrap_or_else(|_| {
                     // Invalid value should be handled by `clap` when building an `ArgMatches`
                     unreachable!("Invalid value '{value}' for 'blocks'")
-                }));
-            }
-            Some(Self(blocks))
-        } else {
-            None
-        }
+                })
+            })
+            .collect();
+
+        Some(Self(blocks))
     }
 
     /// Get a potential `Blocks` struct from a [Config].
